@@ -1,7 +1,8 @@
 version: "3.8"
 services:
         otbr:
-                image: "openthread/otbr"
+                image: "blueirislabs/otbr-watch"
+                build: .
                 ports:
                         - "8080:80"
                 volumes:
