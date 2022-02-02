@@ -21,3 +21,5 @@ services:
                 restart: always
                 logging:
                         driver: "local"
+                labels:
+                  autoheal: true
