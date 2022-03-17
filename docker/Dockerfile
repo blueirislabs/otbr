@@ -1,4 +1,4 @@
 FROM blueirislabs/otbr
 
 ADD otbr-watchdog.py otbr-watchdog.py
-HEALTHCHECK --interval=10s --start-period=2m --timeout=5s CMD python3 otbr-watchdog.py
+HEALTHCHECK --interval=60s --start-period=5m --timeout=10s CMD python3 otbr-watchdog.py
