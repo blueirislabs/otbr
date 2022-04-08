@@ -91,11 +91,13 @@ sed -i "s/dns64.*$/dns64 $NAT64_PREFIX {};/" /etc/bind/named.conf.options
 echo "OTBR_AGENT_OPTS=\"-I $TUN_INTERFACE_NAME $BACKBONE_INTERFACE_ARG -d7 $RADIO_URL\"" >/etc/default/otbr-agent
 echo "OTBR_WEB_OPTS=\"-I $TUN_INTERFACE_NAME -d7 -p 80\"" >/etc/default/otbr-web
 
-sleep 20
+sleep 10 
 
 /app/script/server
-sleep 20
+sleep 10 
 
+ot-ctl reset 
+sleep 1 
 ot-ctl ifconfig up
 ot-ctl thread start
 ot-ctl dataset init new
