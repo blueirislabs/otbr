@@ -36,19 +36,19 @@ sudo systemctl disable ncp_state_notifier
 sudo systemctl stop ncp_state_notifier
 ```
 
-## Run with command
-
+## Set up external otbr docker network
 ```shell
-docker-compose up
+docker network create otbr-network --subnet 172.24.24.0/24
 ```
 
 ## Install to opt:
+```shell
 sudo ln -rs docker /opt/otbr
+```
 
-## Run with systemd
+## Run with command
 
 ```shell
-sudo cp border-router-docker-compose.service /etc/systemd/system/.
-sudo systemctl enable border-router-docker-compose
-sudo systemctl start border-router-docker-compose
+docker-compose up -d
 ```
+
