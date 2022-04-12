@@ -4,9 +4,9 @@ After=docker.service
 
 [Service]
 WorkingDirectory=/opt/otbr/docker
-ExecStart=python3 /opt/otbr/software/otbr-watchdog/otbr-watchdog.py
-StandardOutput=syslog
-StandardError=syslog
+ExecStart=python3 -u /opt/otbr/software/otbr-watchdog/otbr-watchdog.py
+StandardOutput=journal
+StandardError=journal+console
 SyslogIdentifier=otbr-watchdog
 
 [Install]
