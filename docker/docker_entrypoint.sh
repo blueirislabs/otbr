@@ -91,18 +91,18 @@ sed -i "s/dns64.*$/dns64 $NAT64_PREFIX {};/" /etc/bind/named.conf.options
 echo "OTBR_AGENT_OPTS=\"-I $TUN_INTERFACE_NAME $BACKBONE_INTERFACE_ARG -d7 $RADIO_URL\"" >/etc/default/otbr-agent
 echo "OTBR_WEB_OPTS=\"-I $TUN_INTERFACE_NAME -d7 -p 80\"" >/etc/default/otbr-web
 
-sleep 10 
+sleep 10
 
 /app/script/server
-sleep 10 
+sleep 10
 
-ot-ctl reset 
-sleep 1 
+ot-ctl reset
+sleep 1
 ot-ctl ifconfig up
 ot-ctl thread start
-sleep 10 
+sleep 10
 ot-ctl dataset init new
-ot-ctl dataset activetimestamp $((1 + $RANDOM % 10000))
+#ot-ctl dataset activetimestamp $((1 + $RANDOM % 10000))
 ot-ctl dataset masterkey 00112233445566778899aabbccddeeff
 ot-ctl dataset channel 21
 ot-ctl dataset panid 0xface
@@ -113,7 +113,7 @@ ot-ctl prefix add fd11:22::/64 pasor
 ot-ctl txpower 2
 ot-ctl channel manager supported 0x7fffc00
 ot-ctl channel manager auto 1
-sleep 10 
+sleep 10
 ot-ctl netdata register
 ot-ctl state router
 sleep 10
