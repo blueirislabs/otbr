@@ -17,5 +17,6 @@ while True:
     if not any(x in state for x in ["leader", "router"]):
         subprocess.run(['docker-compose', 'down'])
         subprocess.run(['docker-compose', 'up', '-d'])
-
-    time.sleep(30)
+        time.sleep(120)
+    else: 
+        time.sleep(30)
