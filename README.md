@@ -1,81 +1,47 @@
-otbr: OpenThread Border Router
-==============================
+OTBR Docker image with Docker Compose
+====================================
 
-<img src="media/border_router_iso.jpg" alt="BorderRouter"  align="right" width="50%">
+This setups up a border router using the otbr docker image and docker compose.
 
-Lab11's specific Border Router build and related software and services. The
-most recent Raspberry Pi border router images are hosted
-[here](https://drive.google.com/drive/folders/1PPWXb8jNRH-0Om33MEdCzh-wI4fYrNA-?usp=sharing),
-based on OpenThread's [reference
-implementation](https://github.com/openthread/openthread).
+## Dependencies
 
-## Assembling a Border Router
+To use this you need to install docker and docker compose
 
-What you need: A Rasbperry Pi 3 B+ and a Nordic NRF52840 Dongle. The Raspberry
-Pi acts as an IPv6 forwarder, while the NCP acts as a bridge between the Thread
-network and the Pi forwarder.
-
-You will also need to install nrfutil:
-```
-pip install nrfutil
+```shell
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker pi
+sudo apt-get install -y libffi-dev libssl-dev
+sudo apt-get install -y python3 python3-pip
+sudo apt-get remove python-configparser
+sudo pip3 -v install docker-compose
 ```
 
-### Prepare the Border Router
-Grab the most recent image hosted
-[here](https://drive.google.com/drive/folders/1PPWXb8jNRH-0Om33MEdCzh-wI4fYrNA-?usp=sharing).
-Flash this image to a micro-sd card according to the normal [RPi
-directions](https://www.raspberrypi.org/documentation/installation/installing-images/).
+## Configure
 
-Each Border Router has a unique ID that defines its MAC address and hostname.
-This ID resembles `C0:98:E5:C1:XX:XX`, and the derived hostname is
-`tb-c098e5c1xxxx`.  Modify the `/etc/hosts`, `/etc/hostname`, and
-`/boot/cmdline.txt` files to reflect the hostname and MAC address of your
-chosen ID.
+You should set the values after the ot-ctl commands at the end of docker_entrypoint.sh
+to configure your border router.
 
-For example, modify the following lines to reflect your ID:
-#### `/etc/hostname`:
-```
-tb-c098e5c10001
-```
-#### `/etc/hosts`:
-```
-127.0.1.1	tb-c098e5c10001
-```
-#### `/boot/cmdline.txt`:
-```
-smsc95xx.macaddr=c0:98:e5:c1:00:01
-```
-Make sure that you add no extra newlines in `/boot/cmdline.txt`, and it just consists of one line.
+## Setup the PI
 
-### Prepare the Network Co-Processor (NCP)
-Navigate to the openthread submodule. Bootstrap your system, the repo, and build the NCP firmware:
-```
-cd openthread/
-./scripts/bootstrap
-./bootstrap
-make -f examples/Makefile-nrf52840 COMMISSIONER=1 JOINER=1 COAP=1 DNS_CLIENT=1 MTD_NETDIAG=1 BORDER_ROUTER=1 MAC_FILTER=1 UDP_PROXY=1 USB=1 BOOTLOADER=1 DHCP6_SERVER=1 DHCP6_CLIENT=1 DNS_SERVER=1 DISABLE_BUILTIN_MBEDTLS=1
+*Make sure that there are no other border router services running*
+
+```shell
+sudo systemctl disable wpantund
+sudo systemctl stop wpantund
+sudo systemctl disable otbr-web
+sudo systemctl stop otbr-web
+sudo systemctl disable tayga
+sudo systemctl stop tayga
+sudo systemctl disable ncp_state_notifier
+sudo systemctl stop ncp_state_notifier
 ```
 
-Plug in the dongle, and press the reset button. This puts the dongle into the
-bootloader.
-Run the `ncp/flash.sh` script to program the dongle with NCP firmware:
-```
-cd ncp/
-./flash.sh
+## Run with command
+
+```shell
+docker-compose up -d
 ```
 
-Plug the programmed NCP into any USB port on the Border Router. Plug the Border
-Router into power, connect it to a network, and wait a few minutes. If your
-computer is on the same local network as the Border Router, you should now be
-able to SSH into the Border Router using the MDNS `.local` hostname:
-```
-ssh pi@tb-c098e5c1XXXX.local
-```
-Where `XXXX` is the ID specific to your Border Router.
-The default password for the `pi` user on our image is `lab11otbr!`.
+## Install to opt:
+sudo ln -rs /home/pi/otbr /opt/otbr
 
-After successfully logging into your new Border Router, while optional, it is
-good practice to **change the password**. Better yet, [disable SSH password
-access](https://stackoverflow.com/questions/20898384/ssh-disable-password-authentication)
-and [generate and install your public key](https://serverfault.com/questions/2429/how-do-you-setup-ssh-to-authenticate-using-keys-instead-of-a-username-password)
-on the Border Router.
