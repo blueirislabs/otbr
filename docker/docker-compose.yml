@@ -23,8 +23,6 @@ services:
                 restart: always
                 logging:
                         driver: "local"
-                labels:
-                  autoheal: true
 networks:
   default:
     external:

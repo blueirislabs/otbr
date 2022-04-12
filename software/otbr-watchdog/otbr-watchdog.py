@@ -15,7 +15,7 @@ while True:
     print("Current otbr dataset: \n", dataset)
 
     if not any(x in state for x in ["leader", "router"]):
-        subprocess.run(['docker-compose', 'down']) 
-        subprocess.run(['docker-compose', 'up', '-d']) 
+        subprocess.run(['docker-compose', 'down'])
+        subprocess.run(['docker-compose', 'up', '-d'])
 
-    time.sleep(60)
+    time.sleep(30)
