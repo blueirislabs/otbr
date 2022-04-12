@@ -7,6 +7,8 @@ import subprocess
 time.sleep(120)
 
 while True:
+    if not os.path.exists('/dev/ttyACM0'):
+        os.system('reboot now')
     result = subprocess.run(['docker', 'exec', '-i', 'docker_otbr_1', 'ot-ctl', 'state'], capture_output=True)
     state = result.stdout.decode('utf-8').strip().split("\r\n")[0]
     print("Current otbr state: ", state)
@@ -18,5 +20,5 @@ while True:
         subprocess.run(['docker-compose', 'down'])
         subprocess.run(['docker-compose', 'up', '-d'])
         time.sleep(120)
-    else: 
+    else:
         time.sleep(30)
