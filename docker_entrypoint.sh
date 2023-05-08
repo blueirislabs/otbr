@@ -38,27 +38,24 @@ function parse_args()
                 shift
                 shift
                 ;;
+            --trel-url)
+                TREL_URL="$2"
+                shift
+                shift
+                ;;
             --interface | -I)
                 TUN_INTERFACE_NAME=$2
                 shift
                 shift
                 ;;
             --backbone-interface | -B)
-                BACKBONE_INTERFACE_ARG="-B $2"
+                BACKBONE_INTERFACE=$2
                 shift
                 shift
                 ;;
             --nat64-prefix)
                 NAT64_PREFIX=$2
                 shift
-                shift
-                ;;
-            --disable-default-prefix-route)
-                AUTO_PREFIX_ROUTE=false
-                shift
-                ;;
-            --disable-default-prefix-slaac)
-                AUTO_PREFIX_SLAAC=false
                 shift
                 ;;
             *)
@@ -68,56 +65,47 @@ function parse_args()
     done
 }
 
+function shutdown()
+{
+    echo "Shutting down"
+    /app/script/server shutdown
+    exit 0
+}
+
+trap shutdown TERM INT
+
 parse_args "$@"
 
 [ -n "$RADIO_URL" ] || RADIO_URL="spinel+hdlc+uart:///dev/ttyUSB0"
+[ -n "$TREL_URL" ] || TREL_URL=""
 [ -n "$TUN_INTERFACE_NAME" ] || TUN_INTERFACE_NAME="wpan0"
-[ -n "$AUTO_PREFIX_ROUTE" ] || AUTO_PREFIX_ROUTE=true
-[ -n "$AUTO_PREFIX_SLAAC" ] || AUTO_PREFIX_SLAAC=true
+[ -n "$BACKBONE_INTERFACE" ] || BACKBONE_INTERFACE="eth0"
 [ -n "$NAT64_PREFIX" ] || NAT64_PREFIX="64:ff9b::/96"
 
 echo "RADIO_URL:" $RADIO_URL
+echo "TREL_URL:" "$TREL_URL"
 echo "TUN_INTERFACE_NAME:" $TUN_INTERFACE_NAME
-echo "BACKBONE_INTERFACE: $BACKBONE_INTERFACE_ARG"
+echo "BACKBONE_INTERFACE: $BACKBONE_INTERFACE"
 echo "NAT64_PREFIX:" $NAT64_PREFIX
-echo "AUTO_PREFIX_ROUTE:" $AUTO_PREFIX_ROUTE
-echo "AUTO_PREFIX_SLAAC:" $AUTO_PREFIX_SLAAC
 
 NAT64_PREFIX=${NAT64_PREFIX/\//\\\/}
+TAYGA_CONF=/etc/tayga.conf
+BIND_CONF_OPTIONS=/etc/bind/named.conf.options
 
-sed -i "s/^prefix.*$/prefix $NAT64_PREFIX/" /etc/tayga.conf
-sed -i "s/dns64.*$/dns64 $NAT64_PREFIX {};/" /etc/bind/named.conf.options
+! test -f $TAYGA_CONF || sed -i "s/^prefix.*$/prefix $NAT64_PREFIX/" $TAYGA_CONF
+! test -f $BIND_CONF_OPTIONS || sed -i "s/dns64.*$/dns64 $NAT64_PREFIX {};/" $BIND_CONF_OPTIONS
+sed -i "s/$INFRA_IF_NAME/$BACKBONE_INTERFACE/" /etc/sysctl.d/60-otbr-accept-ra.conf
 
-echo "OTBR_AGENT_OPTS=\"-I $TUN_INTERFACE_NAME $BACKBONE_INTERFACE_ARG -d7 $RADIO_URL\"" >/etc/default/otbr-agent
+echo "OTBR_AGENT_OPTS=\"-I $TUN_INTERFACE_NAME -B $BACKBONE_INTERFACE -d7 $RADIO_URL $TREL_URL\"" >/etc/default/otbr-agent
 echo "OTBR_WEB_OPTS=\"-I $TUN_INTERFACE_NAME -d7 -p 80\"" >/etc/default/otbr-web
 
-sleep 10
-
 /app/script/server
-sleep 10
 
-ot-ctl reset
-sleep 1
-ot-ctl ifconfig up
-ot-ctl thread start
-sleep 10
-ot-ctl dataset init new
-#ot-ctl dataset activetimestamp $((1 + $RANDOM % 10000))
-ot-ctl dataset masterkey 00112233445566778899aabbccddeeff
-ot-ctl dataset channel 21
-ot-ctl dataset panid 0xface
-ot-ctl dataset networkname OpenThread
-ot-ctl dataset commit active
-sleep 10
-ot-ctl prefix add fd11:22::/64 pasor
-ot-ctl txpower 2
-ot-ctl channel manager supported 0x7fffc00
-ot-ctl channel manager auto 1
-sleep 10
-ot-ctl netdata register
-ot-ctl state router
-sleep 10
+while [[ ! -f /var/log/syslog ]]; do
+    sleep 1
+done
 
-ot-ctl state
+/app/otbr_setup.sh &
 
-tail -f /var/log/syslog
+tail -f /var/log/syslog &
+wait $!

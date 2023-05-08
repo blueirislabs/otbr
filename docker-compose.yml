@@ -2,6 +2,7 @@ version: "3.8"
 services:
         otbr:
                 image: "blueirislabs/otbr-watch"
+                container_name: otbr
                 build: .
                 ports:
                         - "8080:80"
@@ -25,5 +26,5 @@ services:
                         driver: "local"
 networks:
   default:
-    external:
-      name: otbr-network
+    name: otbr-network  
+    external: true

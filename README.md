@@ -5,35 +5,16 @@ This setups up a border router using the otbr docker image and docker compose.
 
 ## Dependencies
 
-To use this you need to install docker and docker compose
-
-```shell
-curl -sSL https://get.docker.com | sh
-sudo usermod -aG docker pi
-sudo apt-get install -y libffi-dev libssl-dev
-sudo apt-get install -y python3 python3-pip
-sudo apt-get remove python-configparser
-sudo pip3 -v install docker-compose
-```
+To use this you need to [install](https://docs.docker.com/engine/install/) docker and docker compose
 
 ## Configure
 
 You should set the values after the ot-ctl commands at the end of docker_entrypoint.sh
 to configure your border router.
 
-## Setup the PI
-
-*Make sure that there are no other border router services running*
-
+## Set up external otbr docker network
 ```shell
-sudo systemctl disable wpantund
-sudo systemctl stop wpantund
-sudo systemctl disable otbr-web
-sudo systemctl stop otbr-web
-sudo systemctl disable tayga
-sudo systemctl stop tayga
-sudo systemctl disable ncp_state_notifier
-sudo systemctl stop ncp_state_notifier
+docker network create otbr-network --subnet 172.24.24.0/24
 ```
 
 ## Run with command
@@ -41,7 +22,4 @@ sudo systemctl stop ncp_state_notifier
 ```shell
 docker-compose up -d
 ```
-
-## Install to opt:
-sudo ln -rs /home/pi/otbr /opt/otbr
 
