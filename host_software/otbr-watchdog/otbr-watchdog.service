@@ -1,0 +1,13 @@
+[Unit]
+Description=Openthread Border Router Watchdog
+After=docker.service
+
+[Service]
+WorkingDirectory=/opt/otbr/docker
+ExecStart=python -u /opt/otbr/host_software/otbr-watchdog/otbr-watchdog.py
+StandardOutput=journal
+StandardError=journal+console
+SyslogIdentifier=otbr-watchdog
+
+[Install]
+WantedBy=multi-user.target
